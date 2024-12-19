@@ -20,37 +20,35 @@
 // }
 
 pipeline {
-   tools {
-        maven 'Maven'
+    tools {
+        maven 'Maven' // Ensure 'Maven' is a configured tool in Jenkins
     }
-    agent {label 'slave-node-label'}
+    agent { label 'slave-node-label' }
     environment {
         registry = "226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo"
-    }    
-        stage ('Build') {
-          steps {
-            sh 'mvn clean install'           
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
             }
         }
-        
-            // Building Docker images
         stage('Building image') {
-          steps{
-            script {
-              sh 'docker build -t 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo:v1.$BUILD_ID .'
-              sh 'docker tag 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo:v1.$BUILD_ID 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo:v1.$BUILD_ID'
-             }
-           }
-         }
-   
-    // Uploading Docker images into AWS ECR
-       stage('Pushing to ECR') {
-         steps{  
-           script {
-             sh 'aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com' 
-             sh 'docker push 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo:v1.$BUILD_ID'
-             sh 'docker rmi 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo:v1.$BUILD_ID 226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/dev-backend-repo:v1.$BUILD_ID' // Delete docker images from server 
-           }
-          }
-         }
+            steps {
+                script {
+                    sh 'docker build -t $registry:v1.$BUILD_ID .'
+                    sh 'docker tag $registry:v1.$BUILD_ID $registry:v1.$BUILD_ID'
+                }
+            }
+        }
+        stage('Pushing to ECR') {
+            steps {
+                script {
+                    sh 'aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $registry'
+                    sh 'docker push $registry:v1.$BUILD_ID'
+                    sh 'docker rmi $registry:v1.$BUILD_ID'
+                }
+            }
+        }
     }
+}
