@@ -53,7 +53,5 @@ pipeline {
 //                 sh './kubectl apply -f jenkins_deployment.yml'
 //             }
 //         }
-    }
-}
 
 
