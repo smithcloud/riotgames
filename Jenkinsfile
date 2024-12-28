@@ -11,8 +11,8 @@ pipeline {
             steps {
                 sh 'aws --version'
                 sh 'docker --version'
-                sh 'kubectl --version'
-                sh 'eksctl --version'
+                sh 'eksctl version'
+                sh 'kubectl version --client'
             }
         }
         stage ('Build') {
