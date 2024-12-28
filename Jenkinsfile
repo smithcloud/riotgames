@@ -25,5 +25,13 @@ pipeline {
                 }
             }
         }
+        stage ('Deploy') {
+            steps {
+                //withEnv (["MYSQL_USERNAME=${env.MYSQL_USERNAME}", "MYSQL_PASSWORD=${env.MYSQL_PASSWORD}", "MYSQL_HOST=${env.MYSQL_HOST}", "MYSQL_DB=${env.MYSQL_DB}"]) {
+                    sh "aws eks update-kubeconfig --name riotgames-qa-cluster"
+                    sh "kubectl get pods -A"
+                //}
+            }
+        }
     }
 }
