@@ -32,7 +32,7 @@ pipeline {
                     //sh "helm uninstall riotgames-frontend -n frontend"
                     sh "helm repo add riotgames-frontend-chart https://smithcloud.github.io/riotgames-frontend-chart/"
                     sh "helm repo update"
-                    sh "helm install riotgames-frontend --set match_history.image='226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/riotgames-frontend:match_history.1.0-27' riotgames-frontend-chart/charts -n frontend"
+                    sh "helm install riotgames-frontend --set match_history.image='226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/riotgames-frontend:match_history.1.0-30' --set match_history.value='http://riotgames-qa-backend-1677050497.ap-northeast-2.elb.amazonaws.com' riotgames-frontend-chart/charts -n frontend"
                 //}
             }
         }
