@@ -30,7 +30,7 @@ pipeline {
                 //withEnv (["MYSQL_USERNAME=${env.MYSQL_USERNAME}", "MYSQL_PASSWORD=${env.MYSQL_PASSWORD}", "MYSQL_HOST=${env.MYSQL_HOST}", "MYSQL_DB=${env.MYSQL_DB}"]) {
                     sh "aws eks update-kubeconfig --name riotgames-qa-cluster"
                     //sh "helm uninstall riotgames-frontend -n frontend"
-                    sh "helm repo add riotgames-frontned https://smithcloud.github.io/riotgames-frontend-chart/"
+                    sh "helm repo add riotgames-frontend-chart https://smithcloud.github.io/riotgames-frontend-chart/"
                     sh "helm repo update"
                     sh "helm install riotgames-frontend --set match_history.image='226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/riotgames-frontend:match_history.1.0-27' riotgames-frontend-chart/charts -n frontend"
                 //}
