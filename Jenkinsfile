@@ -13,9 +13,6 @@ pipeline {
                 sh 'docker --version'
                 sh 'eksctl version'
                 sh 'kubectl version --client'
-                sh 'helm version'
-                sh 'node -v'
-                sh 'npm -v'
             }
         }
         stage ('Build') {
