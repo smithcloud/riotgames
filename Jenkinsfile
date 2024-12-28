@@ -1,8 +1,5 @@
 pipeline {
     agent any
-
-    tools {nodejs "nodejs"}
-    
     environment {
         VERSION = """${sh(
                      returnStdout: true,
