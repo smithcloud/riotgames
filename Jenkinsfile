@@ -17,7 +17,7 @@ pipeline {
         }
         stage ('Dev-Sonarqube') {
             environment {
-                scannerHome = tool 'lil-sonar-tool';
+                scannerHome = tool 'lil_sonar_project';
             }
             steps {
                 withSonarQubeEnv(credentialsId: 'lil_sonar_project', installationName: 'lil sonar installation') {
