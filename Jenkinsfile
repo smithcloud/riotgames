@@ -15,16 +15,18 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
-        stage ('Dev-Sonarqube') {
-            environment {
-                scannerHome = tool 'lil_sonar_project';
-            }
+        stage('Static Code Analysis: SonarQube') {
+            when { expression { params.action == 'create' } }
             steps {
-                withSonarQubeEnv(credentialsId: 'lil_sonar_project', installationName: 'lil sonar installation') {
-                    sh "${scannerHome}/bin/sonar-scanner"
+                script {
+                    def SonarQubeServerName = 'sonarqube-server'
+
+                    withSonarQubeEnv(SonarQubeServerName) {
+                        sh 'mvn clean package sonar:sonar'
+                    }
                 }
             }
-        }
+        }           
         stage ('Build') {
             steps {
                 withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
