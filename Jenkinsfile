@@ -15,6 +15,16 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
+        stage ('Dev-Sonarqube') {
+            environment {
+                scannerHome = tool 'lil-sonar-tool';
+            }
+            steps {
+                withSonarQubeEnv(credentialsId: 'lil_sonar_project', installationName: 'lil sonar installation') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
         stage ('Build') {
             steps {
                 withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
