@@ -21,7 +21,8 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv(credentialsId: 'sonar-credentials', installationName: 'sonar-server') {
-                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=demo-project -Dsonar.sources=src"
+                    // Add the sonar.java.binaries property pointing to compiled classes
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=demo-project -Dsonar.sources=src -Dsonar.java.binaries=target/classes"
                 }
             }
         }    
