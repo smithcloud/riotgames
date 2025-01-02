@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    tools {
-       maven 'Maven3'
-    }
     environment {
         VERSION = """${sh(
                      returnStdout: true,
