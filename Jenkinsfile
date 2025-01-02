@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+       maven 'Maven3'
+    }
     environment {
         VERSION = """${sh(
                      returnStdout: true,
@@ -14,9 +17,6 @@ pipeline {
                 sh 'eksctl version'
                 sh 'kubectl version --client'
             }
-        }
-        tools {
-            maven 'Maven3'
         }
         stage('Static Code Analysis: SonarQube') {
             steps {
