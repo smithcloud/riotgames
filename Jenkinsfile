@@ -19,7 +19,7 @@ pipeline {
             when { expression { params.action == 'create' } }
             steps {
                 script {
-                    def SonarQubeServerName = 'sonarqube-server'
+                    def SonarQubeServerName = 'sonar-server'
 
                     withSonarQubeEnv(SonarQubeServerName) {
                         sh 'mvn clean package sonar:sonar'
