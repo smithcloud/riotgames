@@ -15,6 +15,9 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
+        tools {
+            maven 'Maven3'
+        }
         stage('Static Code Analysis: SonarQube') {
             steps {
                 script {
