@@ -16,7 +16,11 @@ pipeline {
             }
         }
         stage('Static Code Analysis: SonarQube') {
-            when { expression { params.action == 'create' } }
+            when {
+                expression {
+                    env.BRANCH_NAME == 'backend'
+                }
+            }
             steps {
                 script {
                     def SonarQubeServerName = 'sonar-server'
@@ -26,7 +30,7 @@ pipeline {
                     }
                 }
             }
-        }           
+        } 
         stage ('Build') {
             steps {
                 withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
