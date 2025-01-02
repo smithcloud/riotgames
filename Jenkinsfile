@@ -29,14 +29,14 @@ pipeline {
         }
         stage ('Deploy') {
             steps {
-                // withEnv (["AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
+                withEnv (["AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
                     sh "aws eks update-kubeconfig --name ws-qa-cluster"
                     // sh "helm uninstall ws-backend -n ws"
                     sh "helm repo add ws-backend-chart https://gmstcl.github.io/ws-backend-chart/"
                     sh "helm repo update"
                     sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} ws-backend-chart/ws-backend -n ws"
                     sh "kubectl get pods -n ws"
-                // }
+                }
             }
         }
     }
