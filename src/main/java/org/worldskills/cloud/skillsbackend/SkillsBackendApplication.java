@@ -47,7 +47,7 @@ public class SkillsBackendApplication {
     @GetMapping("/api/health")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> data = new HashMap<>();
-        data.put("status", "OK");
+        data.put("status", "GREEN");
 
         log.info("GET | /api/health | 200");
 
