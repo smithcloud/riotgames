@@ -1,13 +1,15 @@
 pipeline {
     agent any
     tools {
-        maven 'Maven'
+        maven 'maven' // Maven tool 설정
     }
     environment {
         VERSION = """${sh(
                      returnStdout: true,
                      script: 'cat VERSION'
                      )}"""
+        SONAR_HOST_URL = 'http://43.202.94.145:9000' // SonarQube URL
+        SONAR_AUTH_TOKEN = credentials('jenkins-sonar') 
     }
     stages {
         stage('Pre-Build') {
@@ -20,15 +22,19 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sq1') {
-                     bat '''mvn clean verify sonar:sonar -Dsonar.projectKey=demo -Dsonar.projectName='demo' -Dsonar.host.url=http://localhost:9000'''
-                     echo 'SonarQube Analysis Completed'
-                }
+                sh '''
+                mvn clean verify sonar:sonar \
+                -Dsonar.projectKey=demo \
+                -Dsonar.projectName="Demo Project" \
+                -Dsonar.host.url=$SONAR_HOST_URL \
+                -Dsonar.login=$SONAR_AUTH_TOKEN
+                '''
+                echo 'SonarQube Analysis Completed'
             }
         }
-        stage ('Build') {
+        stage('Docker Build & Push') {
             steps {
-                withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
+                withEnv(["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
                     sh "chmod +x gradlew"
                     sh "./gradlew build"
                     sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
@@ -38,11 +44,10 @@ pipeline {
                 }
             }
         }
-        stage ('Deploy') {
+        stage('Deploy') {
             steps {
-                withEnv (["AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
+                withEnv(["AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
                     sh "aws eks update-kubeconfig --name ws-qa-cluster"
-                    // sh "helm uninstall ws-backend -n ws"
                     sh "helm repo add ws-backend-chart https://gmstcl.github.io/ws-backend-chart/"
                     sh "helm repo update"
                     sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} ws-backend-chart/ws-backend -n ws"
