@@ -9,7 +9,7 @@ pipeline {
                      script: 'cat VERSION'
                      )}"""
         SONAR_HOST_URL = 'http://43.202.94.145:9000'
-        SONAR_AUTH_TOKEN = credentials('sonarqube')
+        SONAR_AUTH_TOKEN = credentials('jenkins-sonar')
     }
     stages {
         stage('Checkout Code') {
