@@ -17,7 +17,7 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
-        stage('Docker Build & Push') {
+        stage('Build') {
             steps {
                 withEnv([
                     "AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}",
@@ -70,9 +70,24 @@ pipeline {
                 input "Plase approve to proceed with deployment"
             }
         }
-        stage('deploy') {
+        stage('Prod-Deploy') {
             steps {
-                echo "Production Deploy"
+                withEnv(["AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
+                    sh "aws eks update-kubeconfig --name ws-prod-cluster"
+                    sh "helm repo add ws-backend-chart https://gmstcl.github.io/ws-backend-chart/"
+                    sh "helm repo update"
+                    sh "helm uninstall ws-backend -n ws"
+                    sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} --set backend.version=green ws-backend-chart/ws-backend -n ws"
+                    //sh "helm install ws-backend --set backend.image=test ws-backend-chart/ws-backend -n ws"
+                    sh "sleep 20"
+                    sh "kubectl get pods -n ws"
+                    script {
+                        def statusCode = sh(script: "kubectl exec deployment/backend -n ws -- curl -s -o /dev/null -w '%{http_code}' localhost:8080/api/health", returnStdout: true).trim()
+                        if (statusCode != "200") {
+                            error "Health check failed with status code: ${statusCode}"
+                        }
+                    }
+                }
             }
         }
     }
