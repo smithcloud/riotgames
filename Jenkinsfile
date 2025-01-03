@@ -19,6 +19,7 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
+                sh 'ls -al'
                 sh '''
                 mvn clean verify sonar:sonar \
                 -Dsonar.projectKey=demo \
