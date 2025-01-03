@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        maven 'Maven'
+    }
     environment {
         VERSION = """${sh(
                      returnStdout: true,
@@ -15,16 +18,14 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
-        stages {
-            stage('Scan') {
-              steps {
-                withSonarQubeEnv(installationName: 'sq1') { 
-                  sh './mvnw clean org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.0.2155:sonar'
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('ServerNameSonar') {
+                     bat '''mvn clean verify sonar:sonar -Dsonar.projectKey=demo -Dsonar.projectName='demo' -Dsonar.host.url=http://localhost:9000'''
+                     echo 'SonarQube Analysis Completed'
                 }
-              }
             }
-          }
-        } 
+        }
         stage ('Build') {
             steps {
                 withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
