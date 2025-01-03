@@ -53,7 +53,10 @@ pipeline {
                     sh "helm repo update"
                     sh "helm uninstall ws-backend -n ws"
                     sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} ws-backend-chart/ws-backend -n ws"
+                    sh "sleep 20"
                     sh "kubectl get pods -n ws"
+                    sh "kubectl exec -it deployment/backend -n ws -- /bin/bash"
+                    sh "curl -w %{http_code} localhost:8080/api/health"
                 }
             }
         }
