@@ -19,7 +19,7 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                sh 'ls -al'
+                sh 'ls -al /var/lib/jenkins/workspace/backend-pipeline'
                 sh '''
                 mvn clean verify sonar:sonar \
                 -Dsonar.projectKey=demo \
