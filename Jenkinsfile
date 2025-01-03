@@ -14,7 +14,7 @@ pipeline {
                 sh 'eksctl version'
                 sh 'kubectl version --client'
             }
-          }
+        }
           stages {
             stage('Scan') {
               steps {
