@@ -45,7 +45,7 @@ pipeline {
                 echo 'SonarQube Analysis Completed'
             }
         }
-        stage('Deploy') {
+        stage('QA-Deploy') {
             steps {
                 withEnv(["AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
                     sh "aws eks update-kubeconfig --name ws-qa-cluster"
