@@ -11,12 +11,6 @@ pipeline {
         SONAR_HOST_URL = 'http://43.202.94.145:9000'
         SONAR_AUTH_TOKEN = credentials('jenkins-sonar')
     }
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/gmstcl/ws-cicd.git' 
-            }
-        }
         stage('Pre-Build') {
             steps {
                 sh 'aws --version'
