@@ -19,14 +19,15 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                sh 'ls -al /var/lib/jenkins/workspace/backend-pipeline'
-                sh '''
-                mvn clean verify sonar:sonar \
-                -Dsonar.projectKey=demo \
-                -Dsonar.projectName="Demo Project" \
-                -Dsonar.host.url=$SONAR_HOST_URL \
-                -Dsonar.login=$SONAR_AUTH_TOKEN
-                '''
+                dir('/var/lib/jenkins/plugins/sonar/META-INF/maven/org.jenkins-ci.plugins/sonar/') {
+                    sh '''
+                    mvn clean verify sonar:sonar \
+                    -Dsonar.projectKey=demo \
+                    -Dsonar.projectName="Demo Project" \
+                    -Dsonar.host.url=$SONAR_HOST_URL \
+                    -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
+                }
                 echo 'SonarQube Analysis Completed'
             }
         }
