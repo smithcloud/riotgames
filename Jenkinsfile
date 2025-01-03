@@ -52,7 +52,8 @@ pipeline {
                     sh "helm repo add ws-backend-chart https://gmstcl.github.io/ws-backend-chart/"
                     sh "helm repo update"
                     sh "helm uninstall ws-backend -n ws"
-                    sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} ws-backend-chart/ws-backend -n ws"
+                    //sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} ws-backend-chart/ws-backend -n ws"
+                    sh "helm install ws-backend --set backend.image=test ws-backend-chart/ws-backend -n ws"
                     sh "sleep 20"
                     sh "kubectl get pods -n ws"
                     script {
