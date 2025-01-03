@@ -6,7 +6,7 @@ pipeline {
     environment {
         VERSION = sh(script: 'cat VERSION', returnStdout: true).trim()
         SONAR_HOST_URL = 'http://43.202.94.145:9000'
-        SONAR_AUTH_TOKEN = credentials('sonarqube')
+        SONAR_AUTH_TOKEN = credentials('jenkins-sonar')
     }
     stages {
         stage('Pre-Build') {
