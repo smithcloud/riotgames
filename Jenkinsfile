@@ -19,7 +19,6 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                dir('/var/lib/jenkins/plugins/workflow-api/META-INF/maven/org.jenkins-ci.plugins.workflow/workflow-api/') {
                     sh '''
                     mvn clean verify sonar:sonar \
                     -Dsonar.projectKey=demo \
@@ -27,8 +26,7 @@ pipeline {
                     -Dsonar.host.url=$SONAR_HOST_URL \
                     -Dsonar.login=$SONAR_AUTH_TOKEN
                     '''
-                }
-                echo 'SonarQube Analysis Completed'
+                    echo 'SonarQube Analysis Completed'
             }
         }
         stage('Docker Build & Push') {
