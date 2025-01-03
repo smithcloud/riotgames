@@ -55,7 +55,9 @@ pipeline {
                     sh "helm install ws-backend --set backend.image=${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID} ws-backend-chart/ws-backend -n ws"
                     sh "sleep 20"
                     sh "kubectl get pods -n ws"
-                    sh "kubectl exec deployment/backend -n ws -- curl -s -o /dev/null -w '%{http_code}' localhost:8080/api/health"
+                    def statusCode = sh(script: "kubectl exec deployment/backend -n ws -- curl -s -o /dev/null -w '%{http_code}' localhost:8080/api/health", returnStdout: true).trim()
+                    if (statusCode != "200") {
+                        error "Health check failed with status code: ${statusCode}"
                 }
             }
         }
