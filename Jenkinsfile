@@ -1,17 +1,22 @@
 pipeline {
     agent any
     tools {
-        maven 'maven' // Maven tool 설정
+        maven 'maven'
     }
     environment {
         VERSION = """${sh(
                      returnStdout: true,
                      script: 'cat VERSION'
                      )}"""
-        SONAR_HOST_URL = 'http://43.202.94.145:9000' // SonarQube URL
-        SONAR_AUTH_TOKEN = credentials('jenkins-sonar') 
+        SONAR_HOST_URL = 'http://43.202.94.145:9000'
+        SONAR_AUTH_TOKEN = credentials('sonarqube')
     }
     stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/gmstcl/ws-cicd.git' 
+            }
+        }
         stage('Pre-Build') {
             steps {
                 sh 'aws --version'
