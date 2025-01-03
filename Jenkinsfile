@@ -65,5 +65,15 @@ pipeline {
                 }
             }
         }
+        stage('Approval') {
+            steps {
+                input "Plase approve to proceed with deployment"
+            }
+        }
+        stage('deploy') {
+            steps {
+                echo "Production Deploy"
+            }
+        }
     }
 }
