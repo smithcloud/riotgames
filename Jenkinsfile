@@ -19,7 +19,7 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                dir('/var/lib/jenkins/plugins/sonar/META-INF/maven/org.jenkins-ci.plugins/sonar/') {
+                dir('/var/lib/jenkins/plugins/workflow-api/META-INF/maven/org.jenkins-ci.plugins.workflow/workflow-api/') {
                     sh '''
                     mvn clean verify sonar:sonar \
                     -Dsonar.projectKey=demo \
