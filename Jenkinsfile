@@ -17,18 +17,6 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
-        stage('SonarQube Analysis') {
-            steps {
-                    sh '''
-                    mvn clean verify sonar:sonar \
-                    -Dsonar.projectKey=demo \
-                    -Dsonar.projectName="Demo Project" \
-                    -Dsonar.host.url=$SONAR_HOST_URL \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
-                    echo 'SonarQube Analysis Completed'
-            }
-        }
         stage('Docker Build & Push') {
             steps {
                 withEnv([
@@ -43,6 +31,18 @@ pipeline {
                     sh "docker tag ${AWS_REPOSITORY} ${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID}"
                     sh "docker push ${AWS_REPOSITORY}:backend.${VERSION}-${env.BUILD_ID}"
                 }
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                    sh '''
+                    mvn clean verify sonar:sonar \
+                    -Dsonar.projectKey=demo \
+                    -Dsonar.projectName="Demo Project" \
+                    -Dsonar.host.url=$SONAR_HOST_URL \
+                    -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
+                    echo 'SonarQube Analysis Completed'
             }
         }
         stage('Deploy') {
