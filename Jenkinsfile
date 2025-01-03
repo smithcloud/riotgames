@@ -10,7 +10,7 @@ pipeline {
                      )}"""
         SONAR_HOST_URL = 'http://43.202.94.145:9000'
         SONAR_AUTH_TOKEN = credentials('jenkins-sonar')
-    }
+        }
         stage('Pre-Build') {
             steps {
                 sh 'aws --version'
