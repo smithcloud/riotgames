@@ -1,10 +1,12 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven'
+    }
     environment {
-        VERSION = """${sh(
-                     returnStdout: true,
-                     script: 'cat VERSION'
-                     )}"""
+        VERSION = sh(script: 'cat VERSION', returnStdout: true).trim()
+        SONAR_HOST_URL = 'http://43.202.94.145:9000'
+        SONAR_AUTH_TOKEN = credentials('jenkins-sonar')
     }
     stages {
         stage('Pre-Build') {
@@ -15,25 +17,75 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
-        stage ('Build') {
+        stage('Build') {
             steps {
-                withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.FRONTEND_AWS_REPOSITORY}"]) {
+                withEnv([
+                    "AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}",
+                    "AWS_ACCOUNT=${env.AWS_ACCOUNT}",
+                    "AWS_REPOSITORY=${env.FRONTEND_AWS_REPOSITORY}"
+                ]) {
                     sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
                     sh "docker build -t ${AWS_REPOSITORY} ."
-                    sh "docker tag ${AWS_REPOSITORY} ${AWS_REPOSITORY}:match_history.${VERSION}-${env.BUILD_ID}"
-                    sh "docker push ${AWS_REPOSITORY}:match_history.${VERSION}-${env.BUILD_ID}"
+                    sh "docker tag ${AWS_REPOSITORY} ${AWS_REPOSITORY}:frontend.${VERSION}-${env.BUILD_ID}"
+                    sh "docker push ${AWS_REPOSITORY}:frontend.${VERSION}-${env.BUILD_ID}"
                 }
             }
         }
-        stage ('Deploy') {
+        stage('SonarQube Analysis') {
             steps {
-                //withEnv (["MYSQL_USERNAME=${env.MYSQL_USERNAME}", "MYSQL_PASSWORD=${env.MYSQL_PASSWORD}", "MYSQL_HOST=${env.MYSQL_HOST}", "MYSQL_DB=${env.MYSQL_DB}"]) {
-                    sh "aws eks update-kubeconfig --name riotgames-qa-cluster"
-                    sh "helm uninstall riotgames-frontend -n frontend"
-                    sh "helm repo add riotgames-frontend-chart https://smithcloud.github.io/riotgames-frontend-chart/"
+                sh '''
+                mvn clean verify sonar:sonar \
+                -Dsonar.projectKey=frontend-project \
+                -Dsonar.projectName="Frontend Project" \
+                -Dsonar.host.url=$SONAR_HOST_URL \
+                -Dsonar.login=$SONAR_AUTH_TOKEN
+                '''
+                echo 'SonarQube Analysis Completed'
+            }
+        }
+        stage('QA-Deploy') {
+            steps {
+                withEnv(["AWS_REPOSITORY=${env.FRONTEND_AWS_REPOSITORY}"]) {
+                    sh "aws eks update-kubeconfig --name ws-qa-cluster"
+                    sh "helm repo add ws-frontend-chart https://gmstcl.github.io/ws-frontend-chart/"
                     sh "helm repo update"
-                    sh "helm install riotgames-frontend --set match_history.image='226347592148.dkr.ecr.ap-northeast-2.amazonaws.com/riotgames-frontend:match_history.1.0-31' --set match_history.value='http://riotgames-qa-backend-1677050497.ap-northeast-2.elb.amazonaws.com' riotgames-frontend-chart/charts -n frontend"
-                //}
+                    sh "helm uninstall ws-frontend -n ws"
+                    sh "helm install ws-frontend --set frontend.image=${AWS_REPOSITORY}:frontend.${VERSION}-${env.BUILD_ID} --set frontend.version=green ws-frontend-chart/ws-frontend -n ws"
+                    //sh "helm install ws-frontend --set frontend.image=test ws-frontend-chart/ws-frontend -n ws"
+                    sh "sleep 20"
+                    sh "kubectl get pods -n ws"
+                    script {
+                        def statusCode = sh(script: "kubectl exec deployment/frontend -n ws -- curl -s -o /dev/null -w '%{http_code}' localhost:80/api/health", returnStdout: true).trim()
+                        if (statusCode != "200") {
+                            error "Health check failed with status code: ${statusCode}"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Approval') {
+            steps {
+                input "Plase approve to proceed with deployment"
+            }
+        }
+        stage('Prod-Deploy') {
+            steps {
+                withEnv(["AWS_REPOSITORY=${env.FRONTEND_AWS_REPOSITORY}"]) {
+                    sh "aws eks update-kubeconfig --name ws-prod-cluster"
+                    sh "helm repo add ws-frontend-chart https://gmstcl.github.io/ws-frontend-chart/"
+                    sh "helm repo update"
+                    sh "helm uninstall ws-frontend -n ws"
+                    sh "helm install ws-frontend --set frontend.image=${AWS_REPOSITORY}:frontend.${VERSION}-${env.BUILD_ID} --set frontend.version=green ws-frontend-chart/ws-frontend -n ws"
+                    //sh "helm install ws-frontend --set frontend.image=test ws-frontend-chart/ws-frontend -n ws"
+                    sh "sleep 20"
+                    sh "kubectl get pods -n ws"
+                    script {
+                        def statusCode = sh(script: "kubectl exec deployment/frontend -n ws -- curl -s -o /dev/null -w '%{http_code}' localhost:80/api/health", returnStdout: true).trim()
+                        if (statusCode != "200") {
+                            error "Health check failed with status code: ${statusCode}"
+                        }
+                    }
+                }
             }
         }
     }
