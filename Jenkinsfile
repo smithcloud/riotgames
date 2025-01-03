@@ -4,13 +4,11 @@ pipeline {
         maven 'maven'
     }
     environment {
-        VERSION = """${sh(
-                     returnStdout: true,
-                     script: 'cat VERSION'
-                     )}"""
+        VERSION = sh(script: 'cat VERSION', returnStdout: true).trim()
         SONAR_HOST_URL = 'http://43.202.94.145:9000'
-        SONAR_AUTH_TOKEN = credentials('jenkins-sonar')
-        }
+        SONAR_AUTH_TOKEN = credentials('sonarqube')
+    }
+    stages {
         stage('Pre-Build') {
             steps {
                 sh 'aws --version'
@@ -33,7 +31,11 @@ pipeline {
         }
         stage('Docker Build & Push') {
             steps {
-                withEnv(["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
+                withEnv([
+                    "AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}",
+                    "AWS_ACCOUNT=${env.AWS_ACCOUNT}",
+                    "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"
+                ]) {
                     sh "chmod +x gradlew"
                     sh "./gradlew build"
                     sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
