@@ -15,7 +15,7 @@ pipeline {
                 sh 'kubectl version --client'
             }
         }
-          stages {
+        stages {
             stage('Scan') {
               steps {
                 withSonarQubeEnv(installationName: 'sq1') { 
