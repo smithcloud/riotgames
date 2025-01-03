@@ -14,17 +14,17 @@ pipeline {
                 sh 'eksctl version'
                 sh 'kubectl version --client'
             }
-        }
-        stage('Run Sonarqube') {
-            environment {
-                scannerHome = tool 'sonarqube-tools'; 
-            }
-            steps {
-                withSonarQubeEnv(credentialsId: 'sonar-credentials', installationName: 'sonar-server') {
-                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=demo-project -Dsonar.sources=src -Dsonar.java.binaries=build/classes"
+          }
+          stages {
+            stage('Scan') {
+              steps {
+                withSonarQubeEnv(installationName: 'sq1') { 
+                  sh './mvnw clean org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.0.2155:sonar'
                 }
+              }
             }
-        }    
+          }
+        } 
         stage ('Build') {
             steps {
                 withEnv (["AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}", "AWS_ACCOUNT=${env.AWS_ACCOUNT}", "AWS_REPOSITORY=${env.BACKEND_AWS_REPOSITORY}"]) {
