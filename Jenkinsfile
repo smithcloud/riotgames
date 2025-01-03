@@ -35,14 +35,14 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                    sh '''
-                    mvn clean verify sonar:sonar \
-                    -Dsonar.projectKey=demo \
-                    -Dsonar.projectName="Demo Project" \
-                    -Dsonar.host.url=$SONAR_HOST_URL \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
-                    echo 'SonarQube Analysis Completed'
+                sh '''
+                mvn clean verify sonar:sonar \
+                -Dsonar.projectKey=demo \
+                -Dsonar.projectName="Demo Project" \
+                -Dsonar.host.url=$SONAR_HOST_URL \
+                -Dsonar.login=$SONAR_AUTH_TOKEN
+                '''
+                echo 'SonarQube Analysis Completed'
             }
         }
         stage('Deploy') {
@@ -58,6 +58,7 @@ pipeline {
                     def statusCode = sh(script: "kubectl exec deployment/backend -n ws -- curl -s -o /dev/null -w '%{http_code}' localhost:8080/api/health", returnStdout: true).trim()
                     if (statusCode != "200") {
                         error "Health check failed with status code: ${statusCode}"
+                    }
                 }
             }
         }
